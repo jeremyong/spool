@@ -1,6 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/jeremyong/assets/master/spool.png" height="330px"/></p>
 
-> Spool - A C or C++ cmake *s*tring *pool*ing preprocessor.
+> Spool - A C or C++ cmake **s**tring **pool**ing preprocessor (*pre-alpha*)
 
 ## 🚩 Table of Contents
 - [Motivation](#motivation)
@@ -19,8 +19,8 @@ Most C and C++ programmers know the perils of relying on the following practices
 
 ```c++
     // Comparing string literals by comparing their pointer values
-    const char* name1 = "Alice";
-    const char* name2 = "Alice";
+    const char* name1 = "Hannah";
+    const char* name2 = "Hannah";
 
     // Yikes!
     assert(name1 == name2);
@@ -31,13 +31,13 @@ Obviously, you need to do a `strcmp` or equivalent if you want this sort of comp
 ```c++
     // Using string literals as keys in a map
 
-    const char* name1 = "Alice";
-    const char* name2 = "Alice";
+    const char* name1 = "Hannah";
+    const char* name2 = "Hannah";
     std::unordered_map<const char*, bool> people_present;
     people_present[name1] = true;
     people_present[name2] = true;
     
-    // Now people_present will have two entries... both keyed to "Alice" stored in different locations
+    // Now people_present will have two entries... both keyed to "Hannah" stored in different locations
     // ...
     // Or not! Where they are stored is technically implementation defined
 ```
@@ -245,7 +245,6 @@ anything close to production ready. Also, it's a weird idea, and I'm sure there 
 for Spool (and possibly even people who are offended by the mere idea of Spool). Either way, I had fun hacking it together, at
 least as a proof of concept, and I've been using an even hackier version for a while already with modest success. How "for real"
 the library is will be up to you.
-
 
 ## License
 
