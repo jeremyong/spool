@@ -2,7 +2,9 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <thread>
 
+using namespace std::chrono_literals;
 
 Database::Database(const char* path)
 {
@@ -52,11 +54,22 @@ void Database::lock()
 
     char* error;
     // https://www.sqlite.org/c3ref/exec.html
-    int result = sqlite3_exec(db_, "PRAGMA locking_mode = EXCLUSIVE; BEGIN EXCLUSIVE;", nullptr, nullptr, &error);
-    if (result != SQLITE_OK)
+
+    auto try_duration = 0ms;
+
+    while (try_duration < 1min)
     {
-        std::cerr << "Failed to acquire database lock (" << result << "): " << error << std::endl;
-        throw std::runtime_error("Failed to acquire db lock");
+        int result = sqlite3_exec(db_, "PRAGMA locking_mode = EXCLUSIVE; BEGIN EXCLUSIVE;", nullptr, nullptr, &error);
+        if (result == SQLITE_OK)
+        {
+            locked_ = true;
+            return;
+        }
+
+        try_duration += 5ms;
+        std::this_thread::sleep_for(50ms);
     }
-    locked_ = true;
+
+    std::cerr << "Failed to acquire database lock in a 1 minute period" << std::endl;
+    throw std::runtime_error("Failed to acquire db lock");
 }

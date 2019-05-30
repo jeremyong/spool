@@ -32,8 +32,8 @@ int finalize(Database& db, const char* file_path, const char* macro_name)
         return 1;
     }
 
-    Generator generator{db, fp};
     db.lock();
+    Generator generator{db, fp};
     generator.write_strings();
     generator.write_source_chunks();
     generator.write_offsets();
@@ -67,13 +67,12 @@ int analyze(Database& db, const char* file_path, int source_id, const char* macr
 
     delete[] contents;
 
+    db.lock();
     Origins origins(db, source_id);
     origins.select();
     // Copy here is intentional
     auto& counts = origins.ref_counts();
     std::unordered_map<int, int> new_counts;
-
-    db.lock();
 
     Strings strings(db);
 
@@ -116,6 +115,12 @@ int analyze(Database& db, const char* file_path, int source_id, const char* macr
 
 int main(int argc, char** argv)
 {
+    if (argc == 1)
+    {
+        print_help();
+        return 0;
+    }
+
     const char* db_path = argv[2];
     const char* file_path = argv[3];
     const char* macro_name = argv[4];
@@ -125,11 +130,11 @@ int main(int argc, char** argv)
 
     int result;
 
-    if (std::string(argv[1]) == "generate")
+    if (strcmp(argv[1], "generate") == 0)
     {
         result = finalize(db, file_path, macro_name);
     }
-    else if (std::string(argv[1]) == "analyze")
+    else if (strcmp(argv[1], "analyze") == 0)
     {
         int source_id = std::stoi(argv[5]);
         result = analyze(db, file_path, source_id, macro_name);
