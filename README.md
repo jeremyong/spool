@@ -1,6 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/jeremyong/assets/master/spool.png" height="330px"/></p>
 
-> Spool - A C or C++ cmake **s**tring **pool**ing preprocessor (*pre-alpha*)
+> **Spool** - A C or C++ cmake **s**tring **pool**ing preprocessor (*pre-alpha*)
 
 ## 🚩 Table of Contents
 - [Motivation](#motivation)
@@ -66,12 +66,16 @@ And now, all the following code works
     const char* name1 = SP("Gerald");
     const char* name2 = SP("Gerald");
 
+    // Suppose name3 was defined in a different TU or library even and also set to Gerald
+    extern char* name3;
+
     // Will always be pass
     assert(name1 == name2);
 
     std::unordered_map<const char*, bool> people_present;
     people_present[name1] = true;
     people_present[name2] = true;
+    people_present[name3] = true;
 
     // Now you only have the one entry for Gerald
     assert(people_present.size() == 1);
@@ -82,20 +86,27 @@ All of the above is done *without* incurring any runtime cost (even the indirect
 Now, so long as you've appropriately spooled your targets, you can rely on string literals to use as keys in maps, do
 `O(1)` comparisons to check equality, and more.
 
-## 🎨 Features
+## Features
 
 **Spool** uses a couple levels of indirection to ensure that when you declare a spooled string literal, they refer to the
 same address in memory located within a single translation unit in your project. This enables fast comparisons, keying,
-and other nice properties.
+and other nice properties. Put another way, **Spool** allows you to define string literals scattered around different
+object files in different libraries, and so long as they are the same string, they will all refer to the same memory address
+at runtime.
 
-Spool uses a custom preprocessor to achieve this, and takes care to support incremental builds where only one or a
+**Spool** uses a custom preprocessor to achieve this, and takes care to support incremental builds where only one or a
 few files have been modified. This is done by carefully injecting itself within your cmake dependency tree.
 
-Spool supports full target spooling or spooling only individual files. In addition, you can spool different targets or
+**Spool** supports full target spooling or spooling only individual files. In addition, you can spool different targets or
 files into different "domains" to provide isolation between modules as necessary. By default though, all spooled strings
 and placed and referenced from a single translation unit.
 
-## 🔨 Usage
+As another feature, an important goal of **Spool** was to not impede the usage of IDEs or tools that rely on build system
+metadata to power a sane workflow (jump to definition, etc). Thus, **Spool** does not take the approach of generating new
+source files that are compiled thereafter. The original source files are used in conjunction with a provided header to
+achieve the same effect.
+
+## Usage
 
 ### Requirements
 
@@ -109,7 +120,7 @@ Also **please please** read the [caveats](#caveats) section below before using s
 
 ### Cmake Integration
 
-Spool was written to be super easy to integrate provided you already use `cmake`. Simply call `add_subdirectory` from your
+**Spool** was written to be super easy to integrate provided you already use `cmake`. Simply call `add_subdirectory` from your
 source tree and supply the path to this project (e.g. `add_subdirectory(spool)`).
 
 This automatically adds `spool/cmake` to your `CMAKE_MODULE_PATH` which provides you with two functions: `spool` and `spool_file`.
@@ -210,6 +221,8 @@ The `spool_strings_` constant there is defined as
 ```
 
 It's not everyday you see a lot of triple pointer arrays, but seeing this should give you a decent idea of some of the "magic."
+Another important piece of magic is that the Cmake integration injects a compiler definition called `SPOOL_ID` which is guaranteed
+to be unique for each translation unit. This is generated at configuration time.
 
 As I have time available, I may publish a blog post detailing the various techniques in the library in the future.
 
@@ -242,7 +255,7 @@ you'll likely see an enormous benefit.
 
 It's really tough to say. In it's current state, I am worried that it hasn't had remotely enough coverage/usage in the wild to be
 anything close to production ready. Also, it's a weird idea, and I'm sure there will be plenty of applications that have no need
-for Spool (and possibly even people who are offended by the mere idea of Spool). Either way, I had fun hacking it together, at
+for **Spool** (and possibly even people who are offended by the mere idea of **Spool**). Either way, I had fun hacking it together, at
 least as a proof of concept, and I've been using an even hackier version for a while already with modest success. How "for real"
 the library is will be up to you.
 
